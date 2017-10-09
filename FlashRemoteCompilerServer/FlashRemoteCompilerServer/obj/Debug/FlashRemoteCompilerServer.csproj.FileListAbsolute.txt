@@ -1,0 +1,9 @@
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\bin\Debug\FlashRemoteCompilerServer.exe.config
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\bin\Debug\FlashRemoteCompilerServer.exe
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\bin\Debug\FlashRemoteCompilerServer.pdb
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.csprojResolveAssemblyReference.cache
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.Properties.Resources.resources
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.csproj.GenerateResource.Cache
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.exe
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.pdb
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.Server.resources
