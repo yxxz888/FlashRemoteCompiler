@@ -40,6 +40,9 @@ namespace FlashRemoteCompilerClient
             lbFlaList.Items.Clear();
             lbFlaList.DisplayMember = "displayName";
 
+            //不规范做法，但是做偷个懒算了
+            CheckForIllegalCrossThreadCalls = false;
+
             manualResetEvent.Reset();
         }
 
@@ -152,11 +155,11 @@ namespace FlashRemoteCompilerClient
                 return;
 
             String flaListStr = "";
-            for(int i = 0;i < lbFlaList.Items.Count;i++)
+            for (int i = 0; i < lbFlaList.Items.Count; i++)
             {
                 FileItem item = lbFlaList.Items[i] as FileItem;
                 flaListStr += item.relativePath;
-                if(i < lbFlaList.Items.Count - 1)
+                if (i < lbFlaList.Items.Count - 1)
                     flaListStr += ",";
             }
 
@@ -172,10 +175,11 @@ namespace FlashRemoteCompilerClient
             if (isSending)
                 return;
 
-            if (client == null || client.Connected == false)
+            if (isConnecting() == false)
                 initClient();
 
-
+            handleSend(msg);
+            handleSend("哇哈哈哈哈哈哈");
         }
 
 
@@ -209,6 +213,9 @@ namespace FlashRemoteCompilerClient
 
         private void handleSend(String message)
         {
+            if (isConnecting() == false)
+                return;
+
             showLog("发送文件中......");
             byte[] bytes = Encoding.Default.GetBytes(message);
             client.GetStream().BeginWrite(bytes, 0, bytes.Length, onWriteDataBack,null);
@@ -224,7 +231,7 @@ namespace FlashRemoteCompilerClient
 
         private void handleRead()
         {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[8];
             client.GetStream().BeginRead(buffer, 0, buffer.Length, onReadDateBack, buffer);
         }
 
@@ -245,8 +252,13 @@ namespace FlashRemoteCompilerClient
 
         private void showLog(String msg)
         {
-            txtLog.AppendText(msg);
-            txtLog.AppendText("\n");
+            txtLog.AppendText(msg + "\n");
+        }
+
+
+        private Boolean isConnecting()
+        {
+            return client != null && client.Connected;
         }
 
 

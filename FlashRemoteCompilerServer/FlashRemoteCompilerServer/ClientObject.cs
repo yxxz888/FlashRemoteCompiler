@@ -9,6 +9,7 @@ namespace FlashRemoteCompilerServer
 {
     class ClientObject
     {
+        public String name;
         public TcpClient client;
         public byte[] buffer;
         public String message;
@@ -16,7 +17,13 @@ namespace FlashRemoteCompilerServer
         public ClientObject(TcpClient client)
         {
             this.client = client;
-            buffer = new byte[1024];
+            resetBuffer();
+        }
+
+
+        public void resetBuffer()
+        {
+            buffer = new byte[128];
             message = "";
         }
     }

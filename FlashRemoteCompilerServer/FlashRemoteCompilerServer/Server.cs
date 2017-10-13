@@ -34,6 +34,10 @@ namespace FlashRemoteCompilerServer
         }
 
 
-
+        private void button1_Click(object sender, EventArgs e)
+        {
+            TestClient form = new TestClient();
+            form.Show();
+        }
     }
 }
