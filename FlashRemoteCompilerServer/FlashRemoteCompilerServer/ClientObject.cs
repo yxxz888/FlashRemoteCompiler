@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -13,6 +15,8 @@ namespace FlashRemoteCompilerServer
         public TcpClient client;
         public byte[] buffer;
         public String message;
+        private String[] _fileList;
+        private String[] _flaList;
 
         public ClientObject(TcpClient client)
         {
@@ -25,6 +29,49 @@ namespace FlashRemoteCompilerServer
         {
             buffer = new byte[128];
             message = "";
+        }
+
+
+        public Boolean isFinished()
+        {
+            return _fileList.Length == 0;
+        }
+
+
+        public void finishCompile()
+        {
+            _fileList = new String[0];
+        }
+
+
+        public string[] fileList
+        {
+            get
+            {
+                return _fileList;
+            }
+
+            set
+            {
+                _fileList = value;
+
+                List<String> list = new List<String>();
+                foreach ( String file in _fileList)
+                {
+                    if (new FileInfo(file).Extension == ".fla")
+                        list.Add(file);
+                }
+                _flaList = list.ToArray();
+            }
+        }
+
+
+        public string[] flaList
+        {
+            get
+            {
+                return _flaList;
+            }
         }
     }
 }

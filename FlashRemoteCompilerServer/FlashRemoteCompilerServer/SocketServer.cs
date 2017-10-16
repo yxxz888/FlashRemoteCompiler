@@ -17,19 +17,18 @@ namespace FlashRemoteCompilerServer
         private int port = 14141;
         private TcpListener listener;
 
-        public SocketServer()
+        public delegate void FileListReceiveCallback(ClientObject obj);
+
+        private FileListReceiveCallback onFileListReceive;
+
+        public SocketServer(FileListReceiveCallback callback)
         {
 
             listener = new TcpListener(IPAddress.Any,port);
             listener.Start();
             listener.BeginAcceptTcpClient(onAcceptTcpClient,null);
-        }
 
-
-        public void sendMessage(TcpClient client,String message)
-        {
-            byte[] buffer = Encoding.Default.GetBytes(message);
-            client.GetStream().BeginWrite(buffer, 0, buffer.Length, onWriteData, client);
+            onFileListReceive += callback;
         }
 
 
@@ -53,17 +52,52 @@ namespace FlashRemoteCompilerServer
         private void onReadBack(IAsyncResult ar)
         {
             ClientObject obj = (ClientObject)ar.AsyncState;
-            int len = obj.client.GetStream().EndRead(ar);
-            String temp = Encoding.Default.GetString(obj.buffer);
-            showLog(temp);
-            obj.message += temp;
-            if (obj.client.GetStream().DataAvailable == false)//读完了
+            try
             {
-                showLog("收到消息：" + obj.message);
-                sendMessage(obj.client, "服务端已收到文件！");
-                obj.resetBuffer();
-            }             
-            handleRead(obj);
+                int len = obj.client.GetStream().EndRead(ar);
+                String temp = Encoding.Default.GetString(obj.buffer);
+                showLog(temp);
+                obj.message += temp;
+                if (obj.client.GetStream().DataAvailable == false)//读完了
+                    handleMessage(obj);
+                handleRead(obj);
+            }
+            catch
+            {
+                obj.client.Close();
+            }
+        }
+
+
+        private void handleMessage(ClientObject obj)
+        {
+            String[] temp = obj.message.Split(':');
+            if (temp.Length != 2)
+                return;
+
+            String cmd = temp[0];
+            String msg = temp[1];
+
+            if (cmd == "name")
+                obj.name = msg;
+            else if(cmd == "list")
+            {
+                if (obj.isFinished())
+                {
+                    String[] list = msg.Split(',');
+                    obj.fileList = list;
+                    onFileListReceive(obj);
+                }
+            }
+
+            obj.resetBuffer();           
+        }
+
+
+        public void sendMessage(ClientObject client, String message)
+        {
+            byte[] buffer = Encoding.Default.GetBytes(message);
+            client.client.GetStream().BeginWrite(buffer, 0, buffer.Length, onWriteData, client);
         }
 
 

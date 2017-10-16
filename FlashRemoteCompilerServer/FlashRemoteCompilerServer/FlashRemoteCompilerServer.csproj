@@ -47,6 +47,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientObject.cs" />
+    <Compile Include="CompileUtil.cs" />
+    <Compile Include="ConfigInfo.cs" />
+    <Compile Include="ModifyItemInfo.cs" />
+    <Compile Include="ModifyXmlInfo.cs" />
     <Compile Include="Server.cs">
       <SubType>Form</SubType>
     </Compile>

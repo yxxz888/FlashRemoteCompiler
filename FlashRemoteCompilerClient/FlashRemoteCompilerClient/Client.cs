@@ -37,10 +37,12 @@ namespace FlashRemoteCompilerClient
 
         private void Form_Load(object sender, EventArgs e)
         {
+            initClient();
+
             lbFlaList.Items.Clear();
             lbFlaList.DisplayMember = "displayName";
 
-            //不规范做法，但是做偷个懒算了
+            //不规范做法，但是做工具偷个懒算了
             CheckForIllegalCrossThreadCalls = false;
 
             manualResetEvent.Reset();
@@ -158,7 +160,12 @@ namespace FlashRemoteCompilerClient
             for (int i = 0; i < lbFlaList.Items.Count; i++)
             {
                 FileItem item = lbFlaList.Items[i] as FileItem;
-                flaListStr += item.relativePath;
+                if(item.fileName.ToLower() != item.fileName)
+                {
+                    MessageBox.Show("发现文件“" + item.fileName + "”不是全小写，停止编译。");
+                    return;
+                }
+                flaListStr += item.realPath;
                 if (i < lbFlaList.Items.Count - 1)
                     flaListStr += ",";
             }
@@ -178,14 +185,12 @@ namespace FlashRemoteCompilerClient
             if (isConnecting() == false)
                 initClient();
 
-            handleSend(msg);
-            handleSend("哇哈哈哈哈哈哈");
+            handleSendFile(msg);
         }
 
 
         private void initClient()
         {
-            showLog("尝试连接服务端......");
             client = new TcpClient();
             try
             {
@@ -200,7 +205,8 @@ namespace FlashRemoteCompilerClient
             manualResetEvent.WaitOne(5 * 1000);
             if (client.Connected)
             {
-                showLog("连接成功！");
+                showLog("连接服务端成功！");
+                handleSendName();
                 handleRead();
             }
             else
@@ -211,21 +217,44 @@ namespace FlashRemoteCompilerClient
         }
 
 
-        private void handleSend(String message)
+        private void handleSendName()
+        {
+            String myName = System.Environment.MachineName;
+            handleSend("name:" + myName);
+        }
+
+
+        private void handleSendFile(String msg)
         {
             if (isConnecting() == false)
                 return;
 
             showLog("发送文件中......");
+            handleSend("list:" + msg);
+        }
+
+
+        private void handleSend(String message)
+        {
+            if (isConnecting() == false)
+                return;
+
             byte[] bytes = Encoding.Default.GetBytes(message);
-            client.GetStream().BeginWrite(bytes, 0, bytes.Length, onWriteDataBack,null);
+            try
+            {
+                client.GetStream().BeginWrite(bytes, 0, bytes.Length, onWriteDataBack, null);
+            }
+            catch
+            {
+                client.Close();
+                client = null;
+            }
         }
 
 
         private void onWriteDataBack(IAsyncResult ar)
         {
             client.GetStream().EndWrite(ar);
-            showLog("发送成功！");
         }
 
 
@@ -238,15 +267,23 @@ namespace FlashRemoteCompilerClient
 
         private void onReadDateBack(IAsyncResult ar)
         {
-            client.GetStream().EndRead(ar);
-            byte[] buffer = (byte[])ar.AsyncState;
-            lastReadMessage += Encoding.Default.GetString(buffer);
-            if (client.GetStream().DataAvailable == false)//读完了
+            try
             {
-                showLog(lastReadMessage);
-                lastReadMessage = "";
+                client.GetStream().EndRead(ar);
+                byte[] buffer = (byte[])ar.AsyncState;
+                lastReadMessage += Encoding.Default.GetString(buffer);
+                if (client.GetStream().DataAvailable == false)//读完了
+                {
+                    showLog(lastReadMessage);
+                    lastReadMessage = "";
+                }
+                handleRead();
             }
-            handleRead();
+            catch
+            {
+                client.Close();
+                client = null;
+            }
         }
 
 
