@@ -5,7 +5,9 @@
 function compile(root, fileList, logPath){
 	var tracePath = getPath(logPath) + "publish_trace.txt";
 	var errorPath = getPath(logPath) + "publish_error.txt";
+
 	FLfile.remove(logPath);
+
 	for(var i = 0;i < fileList.length;i++){
 		var filePath = root + fileList[i];
 		var doc = fl.openDocument(filePath);
@@ -23,24 +25,13 @@ function compile(root, fileList, logPath){
 			traceLog(traceMsg + "\r\n", logPath);
 			traceLog(errorMsg + "\r\n", logPath);
 			traceLog("===============\r\n\r\n", logPath);
-			if(confirm("编译错误或警告，是否中断？")){
-				break;
-			}
 		}
 		FLfile.remove(tracePath);
 		FLfile.remove(errorPath);
 	}
-	
-	var out = FLfile.read(logPath);
-	if(out.length > 0){
-		var msg = "编译完成，发生了一些编译错误或警告。";
-		fl.trace(msg);
-		if(confirm(msg + "\n是否现在查看这些错误？")){
-			fl.openScript(logPath);
-		}
-	}else{
-		fl.trace("编译完成，没有任何错误。");
-	}
+
+	fl.closeAll();
+	fl.quit(false);
 }
 
 function traceLog(msg, logPath){

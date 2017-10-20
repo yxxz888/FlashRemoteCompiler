@@ -24,7 +24,8 @@ namespace FlashRemoteCompilerServer
         private ClientObject curCompileClient;
         private Boolean isCompiling = false;
 
-        private CompileUtil util = new CompileUtil();
+        private CompileUtil compileUtil = new CompileUtil();
+        private UploadUtil uploadUtil = new UploadUtil();
 
         public Server()
         {
@@ -34,6 +35,7 @@ namespace FlashRemoteCompilerServer
 
         private void Server_Load(object sender, EventArgs e)
         {
+            ConfigInfo.initConfig();
             initSocket();
         }
 
@@ -49,7 +51,7 @@ namespace FlashRemoteCompilerServer
             compileList.Add(client);
 
             if (isCompiling)
-                server.sendMessage(client, "进入编译队列……");
+                server.sendMessage(client, "已有编译任务，进入等待队列......");
             else
                 handleCompile();
         }
@@ -58,68 +60,68 @@ namespace FlashRemoteCompilerServer
         private void handleCompile()
         {
             if (compileList.Count <= 0)
-                return ;
+            {
+                isCompiling = false;
+                return;
+            }
 
             curCompileClient = compileList[0];
-            server.sendMessage(curCompileClient, "开始编译……");
+            compileList.RemoveAt(0);
+            server.sendMessage(curCompileClient, "开始编译......");
 
             List<FlaItem> itemList = new List<FlaItem>();
             for (int i = 0; i < curCompileClient.flaList.Length; i++)
             {
                 itemList.Add(new FlaItem(curCompileClient.flaList[i]));
             }
-            util.compileFla(itemList.ToArray());
+            if (itemList.Count > 0)
+                compileUtil.compileFla(itemList.ToArray(), onCompileEnd);
+            else
+                handleUpload();
         }
 
 
-        
-
-
-        private void button1_Click(object sender, EventArgs e)
+        private void onCompileEnd()
         {
-            TestClient form = new TestClient();
-            form.Show();
-        }
-    }
+            String logPath = ConfigInfo.getCSharpPath(ConfigInfo.compileLog);
 
-
-    class FlaItem
-    {
-        public String dis;
-        public String assetsPathForJsfl;//以assets/(不含assets/)为根目录的路径，用/分隔符
-        public String fullPath;//全路径
-        public String assetsPath;//以assets/(不含assets/)为根目录的路径
-        public FlaItem()
-        {
-        }
-
-        public FlaItem(String fullPath)
-        {
-            FileInfo info = new FileInfo(fullPath);
-            this.dis = info.Name;
-            this.fullPath = fullPath;
-
-            String assetsName = ConfigInfo.assets;
-            int index = fullPath.IndexOf(assetsName);
-            if (index != -1)
+            if (File.Exists(logPath) == false)//因为jsfl每次编译前都会删除log文件，如果log不存在，则编译无错误
             {
-                assetsPath = fullPath.Substring(index + assetsName.Length);
-                if (assetsPath.IndexOf("\\") == 0)
-                {
-                    assetsPath = assetsPath.Substring(1);//去掉前面的\\符号，这样才能成功合并路径
-                }
+                handleUpload();
             }
             else
             {
-                assetsPath = dis;
+                String compileResult = File.ReadAllText(logPath);
+                server.sendMessage(curCompileClient, compileResult + "\r\n出现异常，编译终止。");
+                finishCompile();
             }
-
-            assetsPathForJsfl = assetsPath.Replace("\\", "/");
         }
 
-        public override string ToString()
+
+        private void finishCompile()
         {
-            return dis.ToString();
+            curCompileClient.finishCompile();
+            handleCompile();
+        }
+
+
+        private void handleUpload()
+        {
+            server.sendMessage(curCompileClient, "\r\n编译成功，正在上传......");
+            uploadUtil.uploadFile(curCompileClient.fileList, onUploadFinished);
+        }
+
+
+        private void onUploadFinished(Boolean isSuc,String message)
+        {
+            server.sendMessage(curCompileClient, message + "\r\n编译任务完成。");
+            finishCompile();
+        }
+
+
+        private void loadDateFile()
+        {
+            String path = Path.Combine(Application.StartupPath, "history");
         }
     }
 }

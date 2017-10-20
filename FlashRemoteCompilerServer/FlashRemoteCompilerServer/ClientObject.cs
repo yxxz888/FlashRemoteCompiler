@@ -15,8 +15,8 @@ namespace FlashRemoteCompilerServer
         public TcpClient client;
         public byte[] buffer;
         public String message;
-        private String[] _fileList;
-        private String[] _flaList;
+        private String[] _fileList = new String[0];
+        private String[] _flaList = new String[0];
 
         public ClientObject(TcpClient client)
         {
@@ -28,6 +28,11 @@ namespace FlashRemoteCompilerServer
         public void resetBuffer()
         {
             buffer = new byte[128];
+        }
+
+
+        public void clearMessage()
+        {
             message = "";
         }
 

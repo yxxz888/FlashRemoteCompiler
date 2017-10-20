@@ -24,10 +24,12 @@ namespace FlashRemoteCompilerClient
 
         private TcpClient client;
         private String ip = "127.0.0.1";
-        private int port = 14141;
+        private int port = 44444;
         private Boolean isSending = false;
         private ManualResetEvent manualResetEvent = new ManualResetEvent(false);
         private String lastReadMessage = "";
+
+        private String separator = "->";
 
         public FlashRemoteCompilerClient()
         {
@@ -196,7 +198,10 @@ namespace FlashRemoteCompilerClient
             {
                 client.Connect(ip, port);
             }
-            catch{ }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
             finally
             {
                 manualResetEvent.Set();
@@ -220,7 +225,7 @@ namespace FlashRemoteCompilerClient
         private void handleSendName()
         {
             String myName = System.Environment.MachineName;
-            handleSend("name:" + myName);
+            handleSend("name" + separator + myName);
         }
 
 
@@ -230,12 +235,13 @@ namespace FlashRemoteCompilerClient
                 return;
 
             showLog("发送文件中......");
-            handleSend("list:" + msg);
+            handleSend("list" + separator + msg);
         }
 
 
         private void handleSend(String message)
         {
+            Console.WriteLine(message);
             if (isConnecting() == false)
                 return;
 
@@ -244,8 +250,9 @@ namespace FlashRemoteCompilerClient
             {
                 client.GetStream().BeginWrite(bytes, 0, bytes.Length, onWriteDataBack, null);
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e.StackTrace);
                 client.Close();
                 client = null;
             }
@@ -279,8 +286,9 @@ namespace FlashRemoteCompilerClient
                 }
                 handleRead();
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e.StackTrace);
                 client.Close();
                 client = null;
             }
@@ -289,7 +297,7 @@ namespace FlashRemoteCompilerClient
 
         private void showLog(String msg)
         {
-            txtLog.AppendText(msg + "\n");
+            txtLog.AppendText(msg + "\r\n");
         }
 
 
@@ -298,47 +306,9 @@ namespace FlashRemoteCompilerClient
             return client != null && client.Connected;
         }
 
-
-        private void compileFlaList()
+        private void txtLog_TextChanged(object sender, EventArgs e)
         {
-            String[] flaList = {
-                "assets/activity/20170929/nightflycompete.fla",
-                "assets/activity/20170929/nightflycompetegame.fla",
-            };
-            String sourcePathForJSFL = "file:///D|/vstsworkspace/mmo/source/";
-            String tempFilePath = Path.Combine(Application.StartupPath, "compileflatemp.jsfl");
-            FileInfo tempFi = new FileInfo(tempFilePath);
-            Boolean readOnly = tempFi.IsReadOnly;
-            tempFi.IsReadOnly = false;
-            StreamReader sr = new StreamReader(File.Open(tempFilePath, FileMode.Open), Encoding.UTF8);
-            String script = sr.ReadToEnd();
-            sr.Close();
-            tempFi.IsReadOnly = readOnly;
-            String listScript = "";
-            for (int i = 0; i < flaList.Length; i++)
-            {
-                listScript += String.Format("\"{0}\",\r\n", sourcePathForJSFL + flaList[i]);
-            }
-            script = script.Replace("/替代列表/", listScript);
-            String jsflName = Path.Combine(Application.StartupPath, "compilefla.jsfl");
-            FileStream fs = File.Create(jsflName);
-            fs.Close();
-            StreamWriter sw = new StreamWriter(jsflName, false, Encoding.UTF8);
-            sw.Write(script);
-            sw.Flush();
-            sw.Close();
 
-            Process p = new Process();
-            p.StartInfo.FileName = Path.Combine(Application.StartupPath, "compilefla.bat");
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardInput = true;
-            p.StartInfo.RedirectStandardOutput = true;//不要问为啥。。反正不加这行就没反应(zjf.2013.10.12)
-            p.Start();
-            p.WaitForExit();
-            p.Close();
-
-            MessageBox.Show("Finish!");
         }
     }
 }

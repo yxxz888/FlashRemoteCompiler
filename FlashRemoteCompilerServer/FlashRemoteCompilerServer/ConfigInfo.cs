@@ -182,6 +182,16 @@ namespace FlashRemoteCompilerServer
             }
             return path;
         }
+
+
+        public static String getCSharpPath(String path)
+        {
+            String result = path.Clone() as String;
+            result = result.Substring("file:///".Length);
+            result = result.Replace("/", @"\");
+            result = result.Replace("|", ":");
+            return result;
+        }
     }
 
     public class SwcInfo

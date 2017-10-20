@@ -41,29 +41,38 @@
             // 
             // lbFlaList
             // 
+            this.lbFlaList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lbFlaList.Font = new System.Drawing.Font("宋体", 10F);
             this.lbFlaList.FormattingEnabled = true;
             this.lbFlaList.Location = new System.Drawing.Point(12, 32);
             this.lbFlaList.Name = "lbFlaList";
             this.lbFlaList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.lbFlaList.Size = new System.Drawing.Size(247, 134);
+            this.lbFlaList.Size = new System.Drawing.Size(365, 160);
             this.lbFlaList.TabIndex = 1;
             this.lbFlaList.SelectedIndexChanged += new System.EventHandler(this.lbFlaList_SelectedIndexChanged);
             // 
             // txtLog
             // 
+            this.txtLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtLog.BackColor = System.Drawing.SystemColors.Control;
             this.txtLog.Font = new System.Drawing.Font("宋体", 10F);
-            this.txtLog.Location = new System.Drawing.Point(12, 206);
+            this.txtLog.Location = new System.Drawing.Point(12, 245);
             this.txtLog.Multiline = true;
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(352, 108);
+            this.txtLog.Size = new System.Drawing.Size(470, 170);
             this.txtLog.TabIndex = 2;
+            this.txtLog.WordWrap = false;
+            this.txtLog.TextChanged += new System.EventHandler(this.txtLog_TextChanged);
             // 
             // btnAdd
             // 
-            this.btnAdd.Location = new System.Drawing.Point(265, 32);
+            this.btnAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAdd.Location = new System.Drawing.Point(383, 32);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(99, 23);
             this.btnAdd.TabIndex = 3;
@@ -73,7 +82,8 @@
             // 
             // btnRemove
             // 
-            this.btnRemove.Location = new System.Drawing.Point(265, 88);
+            this.btnRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRemove.Location = new System.Drawing.Point(383, 100);
             this.btnRemove.Name = "btnRemove";
             this.btnRemove.Size = new System.Drawing.Size(99, 23);
             this.btnRemove.TabIndex = 4;
@@ -83,7 +93,8 @@
             // 
             // btnRemoveAll
             // 
-            this.btnRemoveAll.Location = new System.Drawing.Point(265, 116);
+            this.btnRemoveAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRemoveAll.Location = new System.Drawing.Point(383, 134);
             this.btnRemoveAll.Name = "btnRemoveAll";
             this.btnRemoveAll.Size = new System.Drawing.Size(99, 23);
             this.btnRemoveAll.TabIndex = 5;
@@ -93,7 +104,8 @@
             // 
             // btnCompile
             // 
-            this.btnCompile.Location = new System.Drawing.Point(265, 143);
+            this.btnCompile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCompile.Location = new System.Drawing.Point(383, 168);
             this.btnCompile.Name = "btnCompile";
             this.btnCompile.Size = new System.Drawing.Size(99, 23);
             this.btnCompile.TabIndex = 6;
@@ -112,7 +124,8 @@
             // 
             // btnAddFromProject
             // 
-            this.btnAddFromProject.Location = new System.Drawing.Point(265, 60);
+            this.btnAddFromProject.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAddFromProject.Location = new System.Drawing.Point(383, 66);
             this.btnAddFromProject.Name = "btnAddFromProject";
             this.btnAddFromProject.Size = new System.Drawing.Size(99, 23);
             this.btnAddFromProject.TabIndex = 8;
@@ -122,16 +135,18 @@
             // 
             // txtRealPath
             // 
-            this.txtRealPath.Location = new System.Drawing.Point(12, 171);
+            this.txtRealPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtRealPath.Location = new System.Drawing.Point(12, 201);
             this.txtRealPath.Name = "txtRealPath";
-            this.txtRealPath.Size = new System.Drawing.Size(352, 30);
+            this.txtRealPath.Size = new System.Drawing.Size(470, 30);
             this.txtRealPath.TabIndex = 9;
             // 
             // FlashRemoteCompilerClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(376, 326);
+            this.ClientSize = new System.Drawing.Size(494, 427);
             this.Controls.Add(this.txtRealPath);
             this.Controls.Add(this.btnAddFromProject);
             this.Controls.Add(this.label1);
@@ -142,7 +157,6 @@
             this.Controls.Add(this.txtLog);
             this.Controls.Add(this.lbFlaList);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
             this.Name = "FlashRemoteCompilerClient";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "FlashRemoteCompiler";

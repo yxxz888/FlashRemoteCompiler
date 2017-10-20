@@ -14,8 +14,10 @@ namespace FlashRemoteCompilerServer
         private Label txtMsg;
 
         private String ip = "127.0.0.1";
-        private int port = 14141;
+        private int port = 44444;
         private TcpListener listener;
+
+        private String separator = "->";
 
         public delegate void FileListReceiveCallback(ClientObject obj);
 
@@ -55,15 +57,17 @@ namespace FlashRemoteCompilerServer
             try
             {
                 int len = obj.client.GetStream().EndRead(ar);
-                String temp = Encoding.Default.GetString(obj.buffer);
+                String temp = Encoding.Default.GetString(obj.buffer).Substring(0,len);
                 showLog(temp);
                 obj.message += temp;
+                obj.resetBuffer();
                 if (obj.client.GetStream().DataAvailable == false)//读完了
                     handleMessage(obj);
                 handleRead(obj);
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e.StackTrace);
                 obj.client.Close();
             }
         }
@@ -71,12 +75,12 @@ namespace FlashRemoteCompilerServer
 
         private void handleMessage(ClientObject obj)
         {
-            String[] temp = obj.message.Split(':');
+            String[] temp = obj.message.Split(new String[] { separator },StringSplitOptions.RemoveEmptyEntries);
             if (temp.Length != 2)
                 return;
 
-            String cmd = temp[0];
-            String msg = temp[1];
+            String cmd = temp[0].Trim();
+            String msg = temp[1].Trim();
 
             if (cmd == "name")
                 obj.name = msg;
@@ -90,20 +94,35 @@ namespace FlashRemoteCompilerServer
                 }
             }
 
-            obj.resetBuffer();           
+            obj.clearMessage();           
         }
 
 
         public void sendMessage(ClientObject client, String message)
         {
-            byte[] buffer = Encoding.Default.GetBytes(message);
-            client.client.GetStream().BeginWrite(buffer, 0, buffer.Length, onWriteData, client);
+            try
+            {
+                byte[] buffer = Encoding.Default.GetBytes(message);
+                client.client.GetStream().BeginWrite(buffer, 0, buffer.Length, onWriteData, client);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
         }
 
 
         private void onWriteData(IAsyncResult ar)
         {
-            ((TcpClient)ar.AsyncState).GetStream().EndWrite(ar);
+            try
+            {
+                ClientObject client = ar.AsyncState as ClientObject;
+                client.client.GetStream().EndWrite(ar);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
         }
 
 

@@ -12,6 +12,10 @@ namespace FlashRemoteCompilerServer
 {
     class CompileUtil
     {
+        public delegate void CompileFinishedCallback();
+
+        private CompileFinishedCallback onCompileFinished;
+
         class FindFlaListObj
         {
             public SwcInfo[] swcList;
@@ -19,8 +23,10 @@ namespace FlashRemoteCompilerServer
         }
 
 
-        public void compileFla(FlaItem[] fileList)
+        public void compileFla(FlaItem[] fileList,CompileFinishedCallback callback)
         {
+            onCompileFinished += callback;
+
             FindFlaListObj res = getSwcFlaList(fileList);
 
             String script = "";
@@ -46,7 +52,10 @@ namespace FlashRemoteCompilerServer
             Process p = new Process();
             p.StartInfo.FileName = "\"" + jsflPath + "\"";
             p.Start();
+            p.WaitForExit();
             p.Close();
+
+            onCompileFinished();
         }
 
 
@@ -90,15 +99,19 @@ namespace FlashRemoteCompilerServer
 
             String script = "var fileList = [];\r\n"
                 + fileListStr
+                + "var log = \"" + ConfigInfo.compileLog + "\";\r\n"
                 + "var path = \"" + ConfigInfo.buildSwcJsfl + "\";\r\n"
-                + "var buildSwcRes = fl.runScript(path, \"buildSwc\", fileList, false);\r\n";
+                + "var buildSwcRes = fl.runScript(path, \"buildSwc\", fileList, false);\r\n"
+                + "FLfile.remove(log);\r\n";
             return script;
         }
 
         private String getCheckSwcOkScript()
         {
             return "if(buildSwcRes != \"true\"){\r\n"
-                + "fl.trace(\"编译swc失败\");\r\n"
+                + "FLfile.write(logPath, \"编译swc失败\", \"append\");\r\n"
+                + "fl.closeAll();\r\n"
+                + "fl.quit(false);\r\n"
                 + "return;\r\n"
                 + "}\r\n";
         }
@@ -117,7 +130,6 @@ namespace FlashRemoteCompilerServer
                 + fileListStr
                 + "var root=\"" + ConfigInfo.assetsForJsfl + "\";\r\n"
                 + "var path = \"" + ConfigInfo.compileJsfl + "\";\r\n"
-                + "var log = \"" + ConfigInfo.compileLog + "\";\r\n"
                 + "fl.runScript(path, \"compile\", root, fileList, log);\r\n";
 
             return script;
