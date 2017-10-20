@@ -62,7 +62,7 @@ namespace FlashRemoteCompilerClient
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.InitialDirectory = assetsPath;
             ofd.Multiselect = true;
-            ofd.Filter = "fla文件(*.fla)|*.fla";
+            //ofd.Filter = "fla文件(*.fla)|*.fla";
             if (ofd.ShowDialog() == DialogResult.OK)
                 addFile(ofd.FileNames);
         }

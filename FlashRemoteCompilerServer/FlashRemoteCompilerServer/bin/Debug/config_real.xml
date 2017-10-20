@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<config>
+  <client>
+    <!--flashExePath>C:\\Program Files (x86)\\Adobe\\Adobe Flash CS4\\Flash.exe</flashExePath-->
+	<flashExePath>E:\software\Adobe Flash CC\Adobe Flash CC\Flash.exe</flashExePath>
+    <build>E:\Bvt\mmo\build</build>
+    <source>E:\Bvt\mmo\source</source>
+    <assets>E:\Bvt\mmo\source\assets</assets>
+    <project>E:\Bvt\mmo\source\project</project>
+    <config>E:\Bvt\mmo\source\assets\config.xml</config>
+    <music>E:\Bvt\mmo\source\assets\music</music>
+    <swcConfig>E:\Bvt\mmo\build\swc.config</swcConfig>
+    <buildSwcJsfl>buildsomeswc.jsfl</buildSwcJsfl><!--编译swc的jsfl文件名-->
+    <compileJsfl>compile.jsfl</compileJsfl><!--编译脚本名-->
+    <compileLog>log.txt</compileLog><!--编译日志名-->
+    <copy><!--要拷贝的发布路径-->
+      <path>C:\Inetpub\ftproot\site\play</path>
+      <path type="ftp" user="root" pw="bvtadmin">ftp://10.18.1.4/site/play</path>
+    </copy>
+  </client>
+  
+  <server>
+    <serverConfig>E:\Bvt\mmo\source\server\config</serverConfig>
+    <buildServer>callBuildServer.bat</buildServer><!--call buildserver的批处理路径-->
+    <serverBuildPath>E:\Bvt\mmo\build\server\altraserver</serverBuildPath><!--服务器build出来的文件路径-->
+    <copy>
+      <path>C:\Inetpub\ftproot\server</path>
+      
+	  <path type="ftp" user="root" pw="bvtadmin">ftp://10.18.1.4/server</path>
+	  <!--<path type="ftp" user="root" pw="000000">ftp://10.18.1.5/server</path>-->
+	  <!--path type="ftp" user="root" pw="000000">ftp://10.18.1.6/server</path>-->
+	 
+	  
+    </copy>
+  </server>
+</config>

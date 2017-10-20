@@ -49,7 +49,7 @@ namespace FlashRemoteCompilerServer
         }
 
 
-        public string[] fileList
+        public String[] fileList
         {
             get
             {
@@ -71,7 +71,7 @@ namespace FlashRemoteCompilerServer
         }
 
 
-        public string[] flaList
+        public String[] flaList
         {
             get
             {
