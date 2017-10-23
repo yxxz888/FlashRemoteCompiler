@@ -34,14 +34,28 @@ namespace FlashRemoteCompilerServer
         }
 
 
+        public void dispose()
+        {
+            listener.Stop();
+        }
+
+
         private void onAcceptTcpClient(IAsyncResult ar)
         {
-            TcpClient client = listener.EndAcceptTcpClient(ar);
-            listener.BeginAcceptTcpClient(onAcceptTcpClient, null);
+            try
+            {
+                TcpClient client = listener.EndAcceptTcpClient(ar);
+                listener.BeginAcceptTcpClient(onAcceptTcpClient, null);
 
-            ClientObject obj = new ClientObject(client);
+                ClientObject obj = new ClientObject(client);
 
-            handleRead(obj);
+                handleRead(obj);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+                listener.Stop();
+            }
         }
 
 

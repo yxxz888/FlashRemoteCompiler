@@ -19,7 +19,7 @@ namespace FlashRemoteCompilerServer
     {
         private SocketServer server;
 
-        private List<ClientObject> compileList = new List<ClientObject>();
+        private List<ClientObject> clientList = new List<ClientObject>();
 
         private ClientObject curCompileClient;
         private Boolean isCompiling = false;
@@ -29,6 +29,8 @@ namespace FlashRemoteCompilerServer
 
         private String historyPath = Path.Combine(Application.StartupPath, "history");
         private Dictionary<String, String> historyMap = new Dictionary<String, String>();
+
+        private Boolean isClosed = false;
 
         public Server()
         {
@@ -55,7 +57,7 @@ namespace FlashRemoteCompilerServer
 
         private void onFileListReceive(ClientObject client)
         {
-            compileList.Add(client);
+            clientList.Add(client);
 
             if (isCompiling)
                 server.sendMessage(client, "已有编译任务，进入等待队列......");
@@ -64,16 +66,28 @@ namespace FlashRemoteCompilerServer
         }
 
 
+        private void handleGetLastestFiles()
+        {
+            if (isClosed)
+                return;
+
+
+        }
+
+
         private void handleCompile()
         {
-            if (compileList.Count <= 0)
+            if (clientList.Count <= 0)
             {
                 isCompiling = false;
                 return;
             }
 
-            curCompileClient = compileList[0];
-            compileList.RemoveAt(0);
+            if (isClosed)
+                return;
+
+            curCompileClient = clientList[0];
+            clientList.RemoveAt(0);
             server.sendMessage(curCompileClient, "开始编译......");
 
             List<FlaItem> itemList = new List<FlaItem>();
@@ -114,6 +128,9 @@ namespace FlashRemoteCompilerServer
 
         private void handleUpload()
         {
+            if (isClosed)
+                return;
+
             server.sendMessage(curCompileClient, "\r\n编译成功，正在上传......");
             uploadUtil.uploadFile(curCompileClient.fileList, onUploadFinished);
         }
@@ -168,22 +185,42 @@ namespace FlashRemoteCompilerServer
         private void loadDateNames()
         {
             historyMap.Clear();
+            lbNameList.Items.Clear();
+            lbFileList.Items.Clear();
 
             String path = Path.Combine(historyPath, cbDateList.SelectedItem.ToString());
             String[] lines = File.ReadAllLines(path);
             if (lines.Length == 0)
                 return;
 
-            for(int i = 0;i < lines.Length;i++)
+            Array.Reverse(lines);
+            for (int i = 0;i < lines.Length;i++)
             {
                 String[] temp = lines[i].Split(new String[] { ";" },StringSplitOptions.RemoveEmptyEntries);
+                if (temp.Length != 2)
+                    continue;
+
                 historyMap.Add(temp[0], temp[1]);
 
                 lbNameList.Items.Add(temp[0]);
             }
 
-            if (historyMap.Count > 0)
+            if (lbNameList.Items.Count > 0)
                 lbNameList.SelectedIndex = 0;
+        }
+
+
+        private void loadFileNames()
+        {
+            lbFileList.Items.Clear();
+
+            String selected = lbNameList.SelectedItem.ToString();
+            String files = historyMap[selected];
+            String[] fileList = files.Split(new String[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < fileList.Length; i++)
+            {
+                lbFileList.Items.Add(fileList[i]);
+            }
         }
 
 
@@ -195,15 +232,73 @@ namespace FlashRemoteCompilerServer
 
         private void lbNameList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            lbFileList.Items.Clear();
+            loadFileNames();
+        }
 
-            String selected = lbNameList.SelectedItem.ToString();
-            String files = historyMap[selected];
-            String[] fileList = files.Split(new String[] { "," },StringSplitOptions.RemoveEmptyEntries);
-            for(int i = 0;i < fileList.Length;i++)
+
+        private void Server_Resize(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Minimized)    //最小化到系统托盘
             {
-                lbFileList.Items.Add(fileList[i]);
+                NotifyIcon.Visible = true;    //显示托盘图标
+                this.Hide();    //隐藏窗口
             }
+        }
+
+
+        private void Server_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //注意判断关闭事件Reason来源于窗体按钮，否则用菜单退出时无法退出!
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;    //取消"关闭窗口"事件
+                this.WindowState = FormWindowState.Minimized;    //使关闭时窗口向右下角缩小的效果
+                NotifyIcon.Visible = true;
+                this.Hide();
+            }
+        }
+
+
+        private void NotifyIcon_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            showWindow();
+        }
+
+
+        private void ShowWindow_Click(object sender, EventArgs e)
+        {
+            showWindow();
+        }
+
+
+        private void ExitWindow_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("确定要退出编译服务端吗？\n这样会导致前端开发无法远程编译Flash文件。", "确定退出", MessageBoxButtons.OKCancel) == DialogResult.OK)
+            {
+                isClosed = true;
+                notifyAllClient();
+                server.dispose();
+                Application.Exit();
+            }
+        }
+
+
+        private void notifyAllClient()
+        {
+            for(int i = 0;i < clientList.Count; i++)
+            {
+                server.sendMessage(clientList[i], "服务端已关闭。");
+                clientList[i].client.Close();
+            }
+        }
+
+
+        private void showWindow()
+        {
+            NotifyIcon.Visible = false;
+            this.Show();
+            WindowState = FormWindowState.Normal;
+            this.Focus();
         }
     }
 }
