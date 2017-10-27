@@ -128,21 +128,22 @@ namespace FlashRemoteCompilerServer
 
         private void onWriteData(IAsyncResult ar)
         {
+            ClientObject client = ar.AsyncState as ClientObject;
             try
             {
-                ClientObject client = ar.AsyncState as ClientObject;
                 client.client.GetStream().EndWrite(ar);
             }
             catch(Exception e)
             {
                 Console.WriteLine(e.StackTrace);
+                client.client.Close();
             }
         }
 
 
         private void showLog(String msg)
         {
-            Console.WriteLine(msg + "\n");
+            Console.WriteLine(msg + "\r\n");
         }
     }
 }

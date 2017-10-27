@@ -21,10 +21,10 @@ function compile(root, fileList, logPath){
 		var traceMsg = FLfile.read(tracePath);
 		var errorMsg = FLfile.read(errorPath);
 		if(traceMsg.length > 0|| (errorMsg.length > 0 && errorMsg != "0 个错误, 0 个警告")){
-			traceLog("编译文件异常:" + filePath + "\r\n", logPath);
+			traceLog("\r\n编译出现异常:\r\n" + filePath + "\r\n", logPath);
 			traceLog(traceMsg + "\r\n", logPath);
 			traceLog(errorMsg + "\r\n", logPath);
-			traceLog("===============\r\n\r\n", logPath);
+			traceLog("===============\r\n", logPath);
 		}
 		FLfile.remove(tracePath);
 		FLfile.remove(errorPath);

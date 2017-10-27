@@ -54,7 +54,7 @@ namespace FlashRemoteCompilerServer
             compileJsfl = getJsflPath(Path.Combine(Application.StartupPath, getConfigValue("/config/client/compileJsfl")), false);
             assetsForJsfl = getJsflPath(assets, true);
             compileLog = getJsflPath(Path.Combine(Application.StartupPath, getConfigValue("/config/client/compileLog")), false);
-            buildSwcJsfl = getJsflPath(Path.Combine(build, getConfigValue("/config/client/buildSwcJsfl")), false);
+            buildSwcJsfl = getJsflPath(Path.Combine(Application.StartupPath, getConfigValue("/config/client/buildSwcJsfl")), false);
             compressSwcBat = getJsflPath(Path.Combine(build, "compress_swc.bat"), false);
             serverConfig = getConfigValue("/config/server/serverConfig");
             buildServer = getConfigValue("/config/server/buildServer");

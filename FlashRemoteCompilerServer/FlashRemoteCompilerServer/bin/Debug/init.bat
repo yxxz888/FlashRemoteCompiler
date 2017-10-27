@@ -1,0 +1,2 @@
+@echo off
+rem if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (call "C:\Program Files (x86)\Microsoft Visual Studio 8\VC\vcvarsall.bat") else (call "C:\Program Files\Microsoft Visual Studio 8\VC\vcvarsall.bat")

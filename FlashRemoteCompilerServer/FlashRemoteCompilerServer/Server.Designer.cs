@@ -64,7 +64,8 @@
             // 
             // lbFileList
             // 
-            this.lbFileList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.lbFileList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lbFileList.FormattingEnabled = true;
             this.lbFileList.ItemHeight = 12;
@@ -80,7 +81,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(65, 12);
             this.label1.TabIndex = 3;
-            this.label1.Text = "编译历史：";
+            this.label1.Text = "上传历史：";
             // 
             // NotifyIcon
             // 

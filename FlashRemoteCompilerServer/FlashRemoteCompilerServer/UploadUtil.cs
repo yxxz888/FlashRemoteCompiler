@@ -21,7 +21,7 @@ namespace FlashRemoteCompilerServer
 
         public void uploadFile(String[] fileList,UploadFinishedCallback callback)
         {
-            this.onUploadFinished += callback;
+            this.onUploadFinished = callback;
 
             uploadList = getFlaItemList(fileList);
 

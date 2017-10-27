@@ -25,9 +25,12 @@ namespace FlashRemoteCompilerClient
         private TcpClient client;
         private String ip = "127.0.0.1";
         private int port = 44444;
-        private Boolean isSending = false;
-        private ManualResetEvent manualResetEvent = new ManualResetEvent(false);
         private String lastReadMessage = "";
+        private Boolean isStartCompile = false;
+
+        //下述字符串用作客户端判断任务是否完成的标记，修改的话请同步修改服务端。
+        private String sucCompileMark = "\r\n本次操作成功。";
+        private String failCompileMark = "\r\n本次操作失败。";
 
         private String separator = "->";
 
@@ -46,8 +49,6 @@ namespace FlashRemoteCompilerClient
 
             //不规范做法，但是做工具偷个懒算了
             CheckForIllegalCrossThreadCalls = false;
-
-            manualResetEvent.Reset();
         }
 
 
@@ -106,6 +107,12 @@ namespace FlashRemoteCompilerClient
         }
 
 
+        private void btnClearLog_Click(object sender, EventArgs e)
+        {
+            txtLog.Clear();
+        }
+
+
         private void btnAddFromProject_Click(object sender, EventArgs e)
         {
             SelectFromProject form = new SelectFromProject();
@@ -155,6 +162,12 @@ namespace FlashRemoteCompilerClient
 
         private void handleCompile()
         {
+            if (isStartCompile)
+            {
+                showNextLineLog("正在远程编译，请耐心等候......");
+                return;
+            }
+
             if (lbFlaList.Items.Count <= 0)
                 return;
 
@@ -181,9 +194,6 @@ namespace FlashRemoteCompilerClient
             if (msg == null || msg.Length == 0)
                 return;
 
-            if (isSending)
-                return;
-
             if (isConnecting() == false)
                 initClient();
 
@@ -204,20 +214,17 @@ namespace FlashRemoteCompilerClient
             }
             finally
             {
-                manualResetEvent.Set();
-            }
-
-            manualResetEvent.WaitOne(5 * 1000);
-            if (client.Connected)
-            {
-                showLog("连接服务端成功！");
-                handleSendName();
-                handleRead();
-            }
-            else
-            {
-                showLog("连接失败，请移步编译机查看服务端是否开启！");
-                client = null;
+                if (client.Connected)
+                {
+                    showNextLineLog("连接服务端成功！");
+                    handleSendName();
+                    handleRead();
+                }
+                else
+                {
+                    showNextLineLog("连接失败，请移步编译机查看服务端是否开启！");
+                    client = null;
+                }
             }
         }
 
@@ -226,6 +233,7 @@ namespace FlashRemoteCompilerClient
         {
             String myName = System.Environment.MachineName;
             handleSend("name" + separator + myName);
+            Thread.Sleep(1000);
         }
 
 
@@ -234,17 +242,15 @@ namespace FlashRemoteCompilerClient
             if (isConnecting() == false)
                 return;
 
-            showLog("发送文件中......");
+            isStartCompile = true;
+            showNextLineLog("发送文件中......");
             handleSend("list" + separator + msg);
         }
 
 
         private void handleSend(String message)
         {
-            Console.WriteLine(message);
-            if (isConnecting() == false)
-                return;
-
+            Console.WriteLine("message:" + message);
             byte[] bytes = Encoding.Default.GetBytes(message);
             try
             {
@@ -252,6 +258,7 @@ namespace FlashRemoteCompilerClient
             }
             catch (Exception e)
             {
+                showNextLineLog("已断开与服务端的连接。");
                 Console.WriteLine(e.StackTrace);
                 client.Close();
                 client = null;
@@ -261,13 +268,24 @@ namespace FlashRemoteCompilerClient
 
         private void onWriteDataBack(IAsyncResult ar)
         {
-            client.GetStream().EndWrite(ar);
+            Console.WriteLine("onWriteDataBack");
+            try
+            {
+                client.GetStream().EndWrite(ar);
+            }
+            catch (Exception e)
+            {
+                showNextLineLog("已断开与服务端的连接。");
+                Console.WriteLine(e.StackTrace);
+                client.Close();
+                client = null;
+            }
         }
 
 
         private void handleRead()
         {
-            byte[] buffer = new byte[8];
+            byte[] buffer = new byte[128];
             client.GetStream().BeginRead(buffer, 0, buffer.Length, onReadDateBack, buffer);
         }
 
@@ -282,12 +300,17 @@ namespace FlashRemoteCompilerClient
                 if (client.GetStream().DataAvailable == false)//读完了
                 {
                     showLog(lastReadMessage);
+                    if (lastReadMessage.IndexOf(sucCompileMark) > -1)//成功
+                        handleCompileSuc();
+                    else if(lastReadMessage.IndexOf(failCompileMark) > -1)//失败
+                        handleCompileFail();
                     lastReadMessage = "";
                 }
                 handleRead();
             }
             catch (Exception e)
             {
+                showNextLineLog("已断开与服务端的连接。");
                 Console.WriteLine(e.StackTrace);
                 client.Close();
                 client = null;
@@ -295,20 +318,41 @@ namespace FlashRemoteCompilerClient
         }
 
 
+        private void handleCompileSuc()
+        {
+            lbFlaList.Items.Clear();
+            handleFinishCompile();
+        }
+
+
+        private void handleCompileFail()
+        {
+            handleFinishCompile();
+        }
+
+
+        private void handleFinishCompile()
+        {
+            isStartCompile = false;
+            showNextLineLog("===========================================");
+        }
+
+
+        private void showNextLineLog(String msg)
+        {
+            showLog("\r\n" + msg);
+        }
+
+
         private void showLog(String msg)
         {
-            txtLog.AppendText(msg + "\r\n");
+            txtLog.AppendText(msg);
         }
 
 
         private Boolean isConnecting()
         {
             return client != null && client.Connected;
-        }
-
-        private void txtLog_TextChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }

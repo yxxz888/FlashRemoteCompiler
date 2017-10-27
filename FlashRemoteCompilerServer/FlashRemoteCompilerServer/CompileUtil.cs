@@ -25,7 +25,10 @@ namespace FlashRemoteCompilerServer
 
         public void compileFla(FlaItem[] fileList,CompileFinishedCallback callback)
         {
-            onCompileFinished += callback;
+            onCompileFinished = callback;
+
+            //如果已经Flash软件已经打开，则后面的编译脚本不能正确结束，所以先把Flash关闭一次。
+            closeFlash();
 
             FindFlaListObj res = getSwcFlaList(fileList);
 
@@ -48,7 +51,7 @@ namespace FlashRemoteCompilerServer
 
             //由于临时jsfl保存到build，而且编完就删，所以这里保存一个备份
             copyTo(jsflPath, backupPath);
-
+            Console.WriteLine(jsflPath);
             Process p = new Process();
             p.StartInfo.FileName = "\"" + jsflPath + "\"";
             p.Start();
@@ -56,6 +59,17 @@ namespace FlashRemoteCompilerServer
             p.Close();
 
             onCompileFinished();
+        }
+
+       
+        private void closeFlash()
+        {
+            String jsflPath = Path.Combine(Application.StartupPath, "closeflash.jsfl");
+            Process p = new Process();
+            p.StartInfo.FileName = "\"" + jsflPath + "\"";
+            p.Start();
+            p.WaitForExit();
+            p.Close();
         }
 
 
@@ -99,17 +113,17 @@ namespace FlashRemoteCompilerServer
 
             String script = "var fileList = [];\r\n"
                 + fileListStr
-                + "var log = \"" + ConfigInfo.compileLog + "\";\r\n"
+                + "var root=\"" + ConfigInfo.assetsForJsfl + "\";\r\n"
+                + "var logPath = \"" + ConfigInfo.compileLog + "\";\r\n"
+                + "FLfile.remove(logPath);\r\n"
                 + "var path = \"" + ConfigInfo.buildSwcJsfl + "\";\r\n"
-                + "var buildSwcRes = fl.runScript(path, \"buildSwc\", fileList, false);\r\n"
-                + "FLfile.remove(log);\r\n";
+                + "var buildSwcRes = fl.runScript(path, \"buildSwc\", root, fileList, logPath);\r\n";
             return script;
         }
 
         private String getCheckSwcOkScript()
         {
             return "if(buildSwcRes != \"true\"){\r\n"
-                + "FLfile.write(logPath, \"编译swc失败\", \"append\");\r\n"
                 + "fl.closeAll();\r\n"
                 + "fl.quit(false);\r\n"
                 + "return;\r\n"
@@ -128,9 +142,8 @@ namespace FlashRemoteCompilerServer
 
             String script = "var fileList = [];\r\n"
                 + fileListStr
-                + "var root=\"" + ConfigInfo.assetsForJsfl + "\";\r\n"
                 + "var path = \"" + ConfigInfo.compileJsfl + "\";\r\n"
-                + "fl.runScript(path, \"compile\", root, fileList, log);\r\n";
+                + "fl.runScript(path, \"compile\", root, fileList, logPath);\r\n";
 
             return script;
         }

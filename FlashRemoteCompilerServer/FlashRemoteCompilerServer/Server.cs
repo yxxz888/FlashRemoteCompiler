@@ -26,9 +26,14 @@ namespace FlashRemoteCompilerServer
 
         private CompileUtil compileUtil = new CompileUtil();
         private UploadUtil uploadUtil = new UploadUtil();
+        private GetLastestUtil getLastestUtil = new GetLastestUtil();
 
         private String historyPath = Path.Combine(Application.StartupPath, "history");
         private Dictionary<String, String> historyMap = new Dictionary<String, String>();
+
+        //下述字符串用作客户端判断是否完成的标记，修改的话请同步修改客户端。
+        private String sucCompileMark = "\r\n本次操作成功。";
+        private String failCompileMark = "\r\n本次操作失败。";
 
         private Boolean isClosed = false;
 
@@ -46,6 +51,7 @@ namespace FlashRemoteCompilerServer
             ConfigInfo.initConfig();
             initSocket();
             loadDateFiles();
+
         }
 
 
@@ -60,7 +66,7 @@ namespace FlashRemoteCompilerServer
             clientList.Add(client);
 
             if (isCompiling)
-                server.sendMessage(client, "已有编译任务，进入等待队列......");
+                server.sendMessage(client, "\r\n已有编译任务，进入等待队列，" + "前面还有" + clientList.Count + "人......");
             else
                 handleCompile();
         }
@@ -71,7 +77,18 @@ namespace FlashRemoteCompilerServer
             if (isClosed)
                 return;
 
+            server.sendMessage(curCompileClient, "\r\n获取文件中......");
+            getLastestUtil.getLastestFiles(onGetLastestEnd);
+        }
 
+
+        private void onGetLastestEnd(string message)
+        {
+            server.sendMessage(curCompileClient, "\r\n" + message);
+            if (message.IndexOf("成功") > -1)
+                handleCompile();
+            else
+                finishCompile();
         }
 
 
@@ -86,9 +103,13 @@ namespace FlashRemoteCompilerServer
             if (isClosed)
                 return;
 
+            isCompiling = true;
             curCompileClient = clientList[0];
             clientList.RemoveAt(0);
-            server.sendMessage(curCompileClient, "开始编译......");
+            server.sendMessage(curCompileClient, "\r\n开始编译......");
+
+            for(int i = 0;i < clientList.Count; i++)
+                server.sendMessage(clientList[i], "\r\n前面还有" + (i + 1) + "人......");
 
             List<FlaItem> itemList = new List<FlaItem>();
             for (int i = 0; i < curCompileClient.flaList.Length; i++)
@@ -106,14 +127,14 @@ namespace FlashRemoteCompilerServer
         {
             String logPath = ConfigInfo.getCSharpPath(ConfigInfo.compileLog);
 
-            if (File.Exists(logPath) == false)//因为jsfl每次编译前都会删除log文件，如果log不存在，则编译无错误
+            if (File.Exists(logPath) == false)//每次编译前都会删除log文件，如果log不存在，则编译无错误
             {
                 handleUpload();
             }
             else
             {
                 String compileResult = File.ReadAllText(logPath);
-                server.sendMessage(curCompileClient, compileResult + "\r\n出现异常，编译终止。");
+                server.sendMessage(curCompileClient, compileResult + "\r\n上传终止。" + failCompileMark);
                 finishCompile();
             }
         }
@@ -138,7 +159,7 @@ namespace FlashRemoteCompilerServer
 
         private void onUploadFinished(Boolean isSuc,String message)
         {
-            server.sendMessage(curCompileClient, message + "\r\n编译任务完成。");
+            server.sendMessage(curCompileClient, "\r\n" + message + sucCompileMark);
             writeHistory(curCompileClient);
             finishCompile();
         }
@@ -248,14 +269,14 @@ namespace FlashRemoteCompilerServer
 
         private void Server_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //注意判断关闭事件Reason来源于窗体按钮，否则用菜单退出时无法退出!
-            if (e.CloseReason == CloseReason.UserClosing)
-            {
-                e.Cancel = true;    //取消"关闭窗口"事件
-                this.WindowState = FormWindowState.Minimized;    //使关闭时窗口向右下角缩小的效果
-                NotifyIcon.Visible = true;
-                this.Hide();
-            }
+            ////注意判断关闭事件Reason来源于窗体按钮，否则用菜单退出时无法退出!
+            //if (e.CloseReason == CloseReason.UserClosing)
+            //{
+            //    e.Cancel = true;    //取消"关闭窗口"事件
+            //    this.WindowState = FormWindowState.Minimized;    //使关闭时窗口向右下角缩小的效果
+            //    NotifyIcon.Visible = true;
+            //    this.Hide();
+            //}
         }
 
 
@@ -287,7 +308,7 @@ namespace FlashRemoteCompilerServer
         {
             for(int i = 0;i < clientList.Count; i++)
             {
-                server.sendMessage(clientList[i], "服务端已关闭。");
+                server.sendMessage(clientList[i], "\r\n服务端已关闭。");
                 clientList[i].client.Close();
             }
         }

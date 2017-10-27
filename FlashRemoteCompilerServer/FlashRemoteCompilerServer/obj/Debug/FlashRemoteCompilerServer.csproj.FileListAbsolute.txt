@@ -7,3 +7,4 @@ D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\
 D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.exe
 D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.pdb
 D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.Server.resources
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerServer\FlashRemoteCompilerServer\obj\Debug\FlashRemoteCompilerServer.TestForm.resources

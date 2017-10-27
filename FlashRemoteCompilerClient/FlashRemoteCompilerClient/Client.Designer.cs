@@ -37,6 +37,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.btnAddFromProject = new System.Windows.Forms.Button();
             this.txtRealPath = new System.Windows.Forms.Label();
+            this.btnClearLog = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // lbFlaList
@@ -67,7 +68,6 @@
             this.txtLog.Size = new System.Drawing.Size(470, 170);
             this.txtLog.TabIndex = 2;
             this.txtLog.WordWrap = false;
-            this.txtLog.TextChanged += new System.EventHandler(this.txtLog_TextChanged);
             // 
             // btnAdd
             // 
@@ -105,7 +105,7 @@
             // btnCompile
             // 
             this.btnCompile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCompile.Location = new System.Drawing.Point(383, 168);
+            this.btnCompile.Location = new System.Drawing.Point(383, 169);
             this.btnCompile.Name = "btnCompile";
             this.btnCompile.Size = new System.Drawing.Size(99, 23);
             this.btnCompile.TabIndex = 6;
@@ -139,14 +139,26 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtRealPath.Location = new System.Drawing.Point(12, 201);
             this.txtRealPath.Name = "txtRealPath";
-            this.txtRealPath.Size = new System.Drawing.Size(470, 30);
+            this.txtRealPath.Size = new System.Drawing.Size(365, 30);
             this.txtRealPath.TabIndex = 9;
+            // 
+            // btnClearLog
+            // 
+            this.btnClearLog.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClearLog.Location = new System.Drawing.Point(384, 215);
+            this.btnClearLog.Name = "btnClearLog";
+            this.btnClearLog.Size = new System.Drawing.Size(98, 24);
+            this.btnClearLog.TabIndex = 10;
+            this.btnClearLog.Text = "ClearLog";
+            this.btnClearLog.UseVisualStyleBackColor = true;
+            this.btnClearLog.Click += new System.EventHandler(this.btnClearLog_Click);
             // 
             // FlashRemoteCompilerClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(494, 427);
+            this.Controls.Add(this.btnClearLog);
             this.Controls.Add(this.txtRealPath);
             this.Controls.Add(this.btnAddFromProject);
             this.Controls.Add(this.label1);
@@ -177,6 +189,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnAddFromProject;
         private System.Windows.Forms.Label txtRealPath;
+        private System.Windows.Forms.Button btnClearLog;
     }
 }
 
