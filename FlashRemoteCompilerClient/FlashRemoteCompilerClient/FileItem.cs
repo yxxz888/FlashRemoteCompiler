@@ -8,7 +8,7 @@ using System.Xml;
 
 namespace FlashRemoteCompilerClient
 {
-    class FileItem
+    public class FileItem
     {
         public String realPath;
         public String relativePath;
@@ -45,6 +45,11 @@ namespace FlashRemoteCompilerClient
             {
                 return fileName;
             }
+        }
+
+        override public String ToString()
+        {
+            return fileName;
         }
     }
 }

@@ -17,6 +17,7 @@ namespace FlashRemoteCompilerServer
         public String message;
         private String[] _fileList = new String[0];
         private String[] _flaList = new String[0];
+        public String[] uploadFileList;
 
         public ClientObject(TcpClient client)
         {
@@ -58,15 +59,16 @@ namespace FlashRemoteCompilerServer
 
             set
             {
-                _fileList = value;
-
+                _fileList = new String[value.Length];
                 List<String> list = new List<String>();
-                foreach ( String file in _fileList)
+                for (int i = 0;i < value.Length;i++)
                 {
-                    if (new FileInfo(file).Extension == ".fla")
-                        list.Add(file);
+                    _fileList[i] = Path.Combine(ConfigInfo.assets, value[i]);
+
+                    if(new FileInfo(_fileList[i]).Extension == ".fla")
+                        list.Add(_fileList[i]);
                 }
-                _flaList = list.ToArray();
+                _flaList = list.ToArray();                
             }
         }
 

@@ -33,6 +33,7 @@
             this.lbFlaList = new System.Windows.Forms.ListBox();
             this.btnSelect = new System.Windows.Forms.Button();
             this.txtRealPath = new System.Windows.Forms.Label();
+            this.btnSelectAll = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // cbDateList
@@ -66,7 +67,7 @@
             // 
             // btnSelect
             // 
-            this.btnSelect.Location = new System.Drawing.Point(106, 230);
+            this.btnSelect.Location = new System.Drawing.Point(59, 230);
             this.btnSelect.Name = "btnSelect";
             this.btnSelect.Size = new System.Drawing.Size(75, 23);
             this.btnSelect.TabIndex = 3;
@@ -81,11 +82,22 @@
             this.txtRealPath.Size = new System.Drawing.Size(259, 31);
             this.txtRealPath.TabIndex = 4;
             // 
+            // btnSelectAll
+            // 
+            this.btnSelectAll.Location = new System.Drawing.Point(151, 230);
+            this.btnSelectAll.Name = "btnSelectAll";
+            this.btnSelectAll.Size = new System.Drawing.Size(75, 23);
+            this.btnSelectAll.TabIndex = 5;
+            this.btnSelectAll.Text = "全部选择";
+            this.btnSelectAll.UseVisualStyleBackColor = true;
+            this.btnSelectAll.Click += new System.EventHandler(this.btnSelectAll_Click);
+            // 
             // SelectFromProject
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 262);
+            this.Controls.Add(this.btnSelectAll);
             this.Controls.Add(this.txtRealPath);
             this.Controls.Add(this.btnSelect);
             this.Controls.Add(this.lbFlaList);
@@ -108,5 +120,6 @@
         private System.Windows.Forms.ListBox lbFlaList;
         private System.Windows.Forms.Button btnSelect;
         private System.Windows.Forms.Label txtRealPath;
+        private System.Windows.Forms.Button btnSelectAll;
     }
 }

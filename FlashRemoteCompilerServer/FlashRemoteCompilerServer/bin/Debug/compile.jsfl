@@ -2,15 +2,22 @@
 //root 根路径 例子file:///D|/vstsworkspace/mmo/
 //fileList 文件地址列表 例子assets/hp/matchinfo.fla
 //logPath log文件地址 file:///D|/vstsworkspace/mmo/log.txt
-function compile(root, fileList, logPath){
+function compile(root, fileList, logPath, failFilePath, compileHistoryPath){
+	root += "assets/";
 	var tracePath = getPath(logPath) + "publish_trace.txt";
 	var errorPath = getPath(logPath) + "publish_error.txt";
 
-	FLfile.remove(logPath);
-
 	for(var i = 0;i < fileList.length;i++){
 		var filePath = root + fileList[i];
-		var doc = fl.openDocument(filePath);
+		FLfile.write(compileHistoryPath, filePath + "\r\n", "append");
+
+		if(fl.fileExists(filePath) == false)
+		{
+			traceLog("\r\n找不到文件:\r\n" + filePath + "\r\n", logPath);
+			logFailFile(filePath,failFilePath);
+			continue ;
+		}
+		var doc = fl.openDocument(filePath);		
 		setVersion(doc);
 		doc.publish();
 		fl.closeDocument(doc,false);
@@ -25,6 +32,7 @@ function compile(root, fileList, logPath){
 			traceLog(traceMsg + "\r\n", logPath);
 			traceLog(errorMsg + "\r\n", logPath);
 			traceLog("===============\r\n", logPath);
+			logFailFile(filePath,failFilePath);
 		}
 		FLfile.remove(tracePath);
 		FLfile.remove(errorPath);
@@ -36,6 +44,10 @@ function compile(root, fileList, logPath){
 
 function traceLog(msg, logPath){
 	FLfile.write(logPath, msg, "append");
+}
+
+function logFailFile(filePath, logPath){
+	FLfile.write(logPath, filePath + "\r\n", "append");
 }
 
 //获取文件路径的目录部分

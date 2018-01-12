@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <config>
   <client>
+    <port>44444</port>
     <flashExePath>C:\Program Files\Adobe\Adobe Flash CS3\Flash.exe</flashExePath>
     <build>D:\vstsworkspace\mmo\build</build>
     <source>D:\vstsworkspace\mmo\source</source>
@@ -12,19 +13,12 @@
     <buildSwcJsfl>buildsomeswc.jsfl</buildSwcJsfl><!--编译swc的jsfl文件名-->
     <compileJsfl>compile.jsfl</compileJsfl><!--编译脚本名-->
     <compileLog>log.txt</compileLog><!--编译日志名-->
+    <failFileLog>fail_file.txt</failFileLog><!--编译失败文件日志名-->
+    <compileHistoryPath>compileHistory.txt</compileHistoryPath><!--累计编译文件日志名-->
     <copy><!--要拷贝的发布路径-->
       <path>D:\vstsworkspace\mmo\build\site\play</path>
       <path>\\10.18.1.58\testCopy\client</path>
     </copy>
   </client>
-  
-  <server>
-    <serverConfig>D:\vstsworkspace\mmo\source\server\config</serverConfig>
-    <buildServer>callBuildServer.bat</buildServer><!--call buildserver的批处理路径-->
-    <serverBuildPath>D:\vstsworkspace\mmo\build\server\altraserver</serverBuildPath><!--服务器build出来的文件路径-->
-    <copy>
-      <path>D:\vstsworkspace\mmo\build\site\server</path>
-      <path>\\10.18.1.58\testCopy\altraserver</path>
-    </copy>
-  </server>
 </config>
+

@@ -9,3 +9,4 @@ D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerClient\
 D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerClient\FlashRemoteCompilerClient\obj\Debug\FlashRemoteCompilerClient.pdb
 D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerClient\FlashRemoteCompilerClient\obj\Debug\FlashRemoteCompilerClient.SelectFromProject.resources
 D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerClient\FlashRemoteCompilerClient\obj\Debug\FlashRemoteCompilerClient.FlashRemoteCompilerClient.resources
+D:\vstsworkspace\mmo\source\tools\FlashRemoteCompiler\FlashRemoteCompilerClient\FlashRemoteCompilerClient\obj\Debug\FlashRemoteCompilerClient.SelectFromRecentFile.resources

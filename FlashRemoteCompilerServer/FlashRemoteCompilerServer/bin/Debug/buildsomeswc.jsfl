@@ -1,7 +1,9 @@
 ﻿var assetsURL;
+var asURL;
 
-function buildSwc(root,buildList,logPath){
-	assetsURL = root;
+function buildSwc(root,buildList,logPath, compileHistoryPath){
+	assetsURL = root + "assets";
+	asURL = root + "as"
 	var buildSuc = true;
 	FLfile.remove(logPath);
 
@@ -9,7 +11,7 @@ function buildSwc(root,buildList,logPath){
 	{
 		var config = buildList[fileIndex];
 
-		if(!exportSWC(config,logPath)){
+		if(!exportSWC(config,logPath,compileHistoryPath)){
 			buildSuc = false;
 			break;
 		}
@@ -19,7 +21,7 @@ function buildSwc(root,buildList,logPath){
 }
 
 
-function exportSWC(config,logPath){
+function exportSWC(config,logPath,compileHistoryPath){
 
 	var tracePath = getPath(logPath) + "publish_trace.txt";
 	var errorPath = getPath(logPath) + "publish_error.txt";
@@ -33,6 +35,9 @@ function exportSWC(config,logPath){
 	fileUrl += "/" + config.name + ".fla";	
 	localSwcUrl += "/" + config.name + ".swc";
 	fl.trace(fileUrl);
+
+	FLfile.write(compileHistoryPath, fileUrl + "\r\n", "append");
+
 	var doc = fl.openDocument(fileUrl);
 	setVersion(doc);
 	doc.publish();

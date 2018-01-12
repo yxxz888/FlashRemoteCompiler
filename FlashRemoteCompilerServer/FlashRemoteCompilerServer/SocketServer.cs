@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -13,8 +14,6 @@ namespace FlashRemoteCompilerServer
     {
         private Label txtMsg;
 
-        private String ip = "127.0.0.1";
-        private int port = 44444;
         private TcpListener listener;
 
         private String separator = "->";
@@ -25,8 +24,7 @@ namespace FlashRemoteCompilerServer
 
         public SocketServer(FileListReceiveCallback callback)
         {
-
-            listener = new TcpListener(IPAddress.Any,port);
+            listener = new TcpListener(IPAddress.Any, ConfigInfo.port);
             listener.Start();
             listener.BeginAcceptTcpClient(onAcceptTcpClient,null);
 

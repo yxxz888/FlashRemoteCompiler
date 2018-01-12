@@ -113,11 +113,15 @@ namespace FlashRemoteCompilerServer
 
             String script = "var fileList = [];\r\n"
                 + fileListStr
-                + "var root=\"" + ConfigInfo.assetsForJsfl + "\";\r\n"
+                + "var root=\"" + ConfigInfo.sourceForJsfl + "\";\r\n"
                 + "var logPath = \"" + ConfigInfo.compileLog + "\";\r\n"
+                + "var failFilePath = \"" + ConfigInfo.failFileLog + "\";\r\n"
+                + "var compileHistoryPath = \"" + ConfigInfo.compileHistoryPath + "\";\r\n"
                 + "FLfile.remove(logPath);\r\n"
+                + "FLfile.remove(failFilePath);\r\n"
+                + "FLfile.remove(compileHistoryPath);\r\n"
                 + "var path = \"" + ConfigInfo.buildSwcJsfl + "\";\r\n"
-                + "var buildSwcRes = fl.runScript(path, \"buildSwc\", root, fileList, logPath);\r\n";
+                + "var buildSwcRes = fl.runScript(path, \"buildSwc\", root, fileList, logPath, compileHistoryPath);\r\n";
             return script;
         }
 
@@ -143,7 +147,7 @@ namespace FlashRemoteCompilerServer
             String script = "var fileList = [];\r\n"
                 + fileListStr
                 + "var path = \"" + ConfigInfo.compileJsfl + "\";\r\n"
-                + "fl.runScript(path, \"compile\", root, fileList, logPath);\r\n";
+                + "fl.runScript(path, \"compile\", root, fileList, logPath, failFilePath, compileHistoryPath);\r\n";
 
             return script;
         }

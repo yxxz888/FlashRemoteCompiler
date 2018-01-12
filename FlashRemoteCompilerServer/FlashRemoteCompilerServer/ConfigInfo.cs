@@ -9,8 +9,9 @@ namespace FlashRemoteCompilerServer
 {
     class ConfigInfo
     {
-        private const String configFilePath = "config.xml";
+        private static String configFilePath = "config.xml";
 
+        public static int port;
         public static String flashPath;
         public static String build;
         public static String source;
@@ -19,27 +20,31 @@ namespace FlashRemoteCompilerServer
         public static String clientConfig;
         public static String music;
         public static String compileJsfl;//编译jsfl的路径
+		public static String sourceForJsfl;//source的jsfl格式
         public static String assetsForJsfl;//jsfl格式的assets路径
         public static String compileLog;//编译日志路径
+        public static String failFileLog;//编译失败文件列表
+        public static String compileHistoryPath;//累计编译文件列表
         public static CopyInfo[] clientCopyList;//客户端拷贝列表
         public static String swcConfigPath;//swc配置路径
         public static SwcInfo[] swcConfig;//swc配置
         public static String buildSwcJsfl;//编译swc的jsfl路径（jsfl格式的路径）
         public static String compressSwcBat;//压缩swc的bat路径（jsfl格式的路径）
 
-        public static String serverConfig;
-        public static String buildServer;
-        public static String serverPath;
-        public static CopyInfo[] serverCopyList;//服务端拷贝列表
-
         public static ModifyXmlInfo[] modifyXmlList;//需要修改内容的xml文件
 
         private static XmlDocument doc;
         public static void initConfig()
         {
+            if (checkIsBvt())
+                configFilePath = "config_bvt.xml";
+            else
+                configFilePath = "config_develop.xml";
+
             doc = new XmlDocument();
             doc.Load(configFilePath);
 
+            port = int.Parse(getConfigValue("/config/client/port"));
             flashPath = getConfigValue("/config/client/flashExePath");
             build = getConfigValue("/config/client/build");
             source = getConfigValue("/config/client/source");
@@ -52,14 +57,13 @@ namespace FlashRemoteCompilerServer
             initSwcInfo();
 
             compileJsfl = getJsflPath(Path.Combine(Application.StartupPath, getConfigValue("/config/client/compileJsfl")), false);
+			sourceForJsfl = getJsflPath(source, true);
             assetsForJsfl = getJsflPath(assets, true);
             compileLog = getJsflPath(Path.Combine(Application.StartupPath, getConfigValue("/config/client/compileLog")), false);
+            failFileLog = getJsflPath(Path.Combine(Application.StartupPath, getConfigValue("/config/client/failFileLog")), false);
+            compileHistoryPath = getJsflPath(Path.Combine(Application.StartupPath, getConfigValue("/config/client/compileHistoryPath")), false);
             buildSwcJsfl = getJsflPath(Path.Combine(Application.StartupPath, getConfigValue("/config/client/buildSwcJsfl")), false);
             compressSwcBat = getJsflPath(Path.Combine(build, "compress_swc.bat"), false);
-            serverConfig = getConfigValue("/config/server/serverConfig");
-            buildServer = getConfigValue("/config/server/buildServer");
-            serverPath = getConfigValue("/config/server/serverBuildPath");
-            serverCopyList = getCopyList("/config/server/copy/path");
 
             initModifyXmlList();
         }
@@ -191,6 +195,13 @@ namespace FlashRemoteCompilerServer
             result = result.Replace("/", @"\");
             result = result.Replace("|", ":");
             return result;
+        }
+
+
+        public static Boolean checkIsBvt()
+        {
+            //bvt是编译机包含的名字，用此来判断开发机还是编译机
+            return Environment.MachineName.ToUpper().IndexOf("BVT") > -1;
         }
     }
 

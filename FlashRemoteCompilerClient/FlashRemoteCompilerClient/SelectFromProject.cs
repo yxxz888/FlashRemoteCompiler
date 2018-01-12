@@ -135,6 +135,24 @@ namespace FlashRemoteCompilerClient
         }
 
 
+        private void btnSelectAll_Click(object sender, EventArgs e)
+        {
+            if (lbFlaList.Items.Count <= 0)
+            {
+                this.Close();
+                return;
+            }
+
+            String[] selectedFileList = new String[lbFlaList.Items.Count];
+            for (int i = 0; i < lbFlaList.Items.Count; i++)
+            {
+                selectedFileList[i] = (lbFlaList.Items[i] as FileItem).realPath;
+            }
+            Callback(selectedFileList);
+            this.Close();
+        }
+
+
         private void lbFlaList_SelectedIndexChanged(object sender, EventArgs e)
         {
             FileItem item = lbFlaList.SelectedItem as FileItem;

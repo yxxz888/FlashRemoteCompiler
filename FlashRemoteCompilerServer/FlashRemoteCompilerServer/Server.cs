@@ -32,10 +32,17 @@ namespace FlashRemoteCompilerServer
         private Dictionary<String, String> historyMap = new Dictionary<String, String>();
 
         //下述字符串用作客户端判断是否完成的标记，修改的话请同步修改客户端。
-        private String sucCompileMark = "\r\n本次操作成功。";
-        private String failCompileMark = "\r\n本次操作失败。";
+        private String endCompileMark = "\r\n本次操作结束。";
+
+        //编译swc出现失败时的提示，用于区分是swc编译失败还是swf编译失败, 修改需要同步修改buildsomeswc.jsfl文件的exportSWC()方法中的提示语。
+        private String compileSWCFailMark = "编译swc出现异常";
 
         private Boolean isClosed = false;
+
+        private Object lockObj = new Object();
+
+        private System.Timers.Timer timer;
+        private String lastFileName = "";
 
         public Server()
         {
@@ -47,11 +54,34 @@ namespace FlashRemoteCompilerServer
         {
             //不规范做法，但是做工具偷个懒算了
             CheckForIllegalCrossThreadCalls = false;
-
+                
             ConfigInfo.initConfig();
             initSocket();
             loadDateFiles();
 
+            timer = new System.Timers.Timer(1000);
+            timer.AutoReset = true;
+            timer.Enabled = true;
+            timer.Elapsed += onTimer;
+        }
+
+
+        private void onTimer(object source, System.Timers.ElapsedEventArgs e)
+        {
+            if (curCompileClient == null)
+                return;
+
+            String logPath = ConfigInfo.getCSharpPath(ConfigInfo.compileHistoryPath);
+            if (File.Exists(logPath))
+            {
+                String[] fileNames = File.ReadAllLines(logPath);
+                String fileName = ConfigInfo.getCSharpPath(fileNames[fileNames.Length - 1]);
+                if (lastFileName != fileName)
+                {
+                    lastFileName = fileName;
+                    server.sendMessage(curCompileClient, "\r\n正在编译" + fileName.Substring(ConfigInfo.assets.Length));
+                }
+            }
         }
 
 
@@ -63,10 +93,39 @@ namespace FlashRemoteCompilerServer
 
         private void onFileListReceive(ClientObject client)
         {
-            clientList.Add(client);
+            lock(lockObj)
+            {
+                clientList.Add(client);
+            }
 
             if (isCompiling)
-                server.sendMessage(client, "\r\n已有编译任务，进入等待队列，" + "前面还有" + clientList.Count + "人......");
+                server.sendMessage(client, "\r\n已有编译任务，进入等待队列，" + "前面还有" + clientList.Count + "人和" + getFileCounts() + "个文件......");
+            else
+                beginTask();
+            
+        }
+
+
+        private void beginTask()
+        {
+            if (clientList.Count <= 0)
+            {
+                isCompiling = false;
+                return;
+            }
+
+            if (isClosed)
+                return;
+
+            isCompiling = true;
+            curCompileClient = clientList[0];
+            clientList.RemoveAt(0);
+
+            for (int i = 0; i < clientList.Count; i++)
+                server.sendMessage(clientList[i], "\r\n前面还有" + (i + 1) + "人和" + getFileCounts() + "个文件......");
+
+            if (ConfigInfo.checkIsBvt())//编译机是要全获source文件夹的，开发机做这个操作的话会爆炸！
+                handleGetLastestFiles();
             else
                 handleCompile();
         }
@@ -84,33 +143,22 @@ namespace FlashRemoteCompilerServer
 
         private void onGetLastestEnd(string message)
         {
-            server.sendMessage(curCompileClient, "\r\n" + message);
             if (message.IndexOf("成功") > -1)
+            {
+                server.sendMessage(curCompileClient, "\r\n获取文件成功。");
                 handleCompile();
+            }
             else
-                finishCompile();
+            {
+                server.sendMessage(curCompileClient, "\r\n" + message);
+                finishTask();
+            }
         }
 
 
         private void handleCompile()
-        {
-            if (clientList.Count <= 0)
-            {
-                isCompiling = false;
-                return;
-            }
-
-            if (isClosed)
-                return;
-
-            isCompiling = true;
-            curCompileClient = clientList[0];
-            clientList.RemoveAt(0);
+        {    
             server.sendMessage(curCompileClient, "\r\n开始编译......");
-
-            for(int i = 0;i < clientList.Count; i++)
-                server.sendMessage(clientList[i], "\r\n前面还有" + (i + 1) + "人......");
-
             List<FlaItem> itemList = new List<FlaItem>();
             for (int i = 0; i < curCompileClient.flaList.Length; i++)
             {
@@ -133,35 +181,82 @@ namespace FlashRemoteCompilerServer
             }
             else
             {
+
                 String compileResult = File.ReadAllText(logPath);
-                server.sendMessage(curCompileClient, compileResult + "\r\n上传终止。" + failCompileMark);
-                finishCompile();
+                server.sendMessage(curCompileClient, compileResult + "\r\n");
+                if (compileResult.IndexOf(compileSWCFailMark) > -1)//编译swc出错，终止上传
+                {
+                    server.sendMessage(curCompileClient, "\r\n上传终止。" + endCompileMark);
+                    finishTask();
+                }
+                else
+                {
+                    String failLogPath = ConfigInfo.getCSharpPath(ConfigInfo.failFileLog);
+                    String[] failFileList = File.ReadAllLines(failLogPath);
+                    String[] originFileList = curCompileClient.fileList;
+                    foreach(String fileName in failFileList)
+                    {
+                        originFileList = removeValueFromList(originFileList, ConfigInfo.getCSharpPath(fileName));
+                    }
+                    if (originFileList.Length > 0)
+                        handleUpload(originFileList);
+                    else
+                    {
+                        server.sendMessage(curCompileClient, "\r\n没有可上传的文件，上传终止。" + endCompileMark);
+                        finishTask();
+                    }
+                }
             }
         }
 
 
-        private void finishCompile()
+        private String[] removeValueFromList(String[] list, String value)
+        {
+            List<String> lists = new List<String>(list);
+            for(int i = lists.Count - 1;i >= 0;i--)
+            {
+                if(lists[i] == value)
+                {
+                    lists.RemoveAt(i);
+                    break;
+                }
+            }
+            return lists.ToArray();
+        }
+
+
+        private void finishTask()
         {
             curCompileClient.finishCompile();
-            handleCompile();
+            curCompileClient = null;
+            lastFileName = "";
+            deleteLogs();
+            beginTask();
         }
 
 
         private void handleUpload()
         {
+            handleUpload(curCompileClient.fileList);
+        }
+
+
+        private void handleUpload(String[] fileList)
+        {
             if (isClosed)
                 return;
 
-            server.sendMessage(curCompileClient, "\r\n编译成功，正在上传......");
-            uploadUtil.uploadFile(curCompileClient.fileList, onUploadFinished);
+            server.sendMessage(curCompileClient, "\r\n编译完成，正在上传编译通过的文件......");
+            curCompileClient.uploadFileList = fileList;
+            uploadUtil.uploadFile(fileList, onUploadFinished);
         }
 
 
         private void onUploadFinished(Boolean isSuc,String message)
         {
-            server.sendMessage(curCompileClient, "\r\n" + message + sucCompileMark);
+            server.sendMessage(curCompileClient, "\r\n" + message + endCompileMark);
             writeHistory(curCompileClient);
-            finishCompile();
+            finishTask();
         }
 
 
@@ -171,16 +266,41 @@ namespace FlashRemoteCompilerServer
             String path = Path.Combine(historyPath, today);
 
             String history = client.name + " " + DateTime.Now.ToString("HH:mm:ss") + ";";
-            for(int i = 0;i < client.fileList.Length;i++)
+            for(int i = 0;i < client.uploadFileList.Length;i++)
             {
-                history += client.fileList[i].Substring(ConfigInfo.assets.Length);
-                if (i < client.fileList.Length - 1)
+                history += client.uploadFileList[i].Substring(ConfigInfo.assets.Length);
+                if (i < client.uploadFileList.Length - 1)
                     history += ",";
             }
 
             File.AppendAllLines(path,new String[] { history });
 
             loadDateFiles();
+        }
+
+
+        private int getFileCounts()
+        {
+            int result = 0;
+            for (int i = 0; i < clientList.Count; i++)
+            {
+                result += clientList[i].flaList.Length;
+            }
+            return result;
+        }
+
+
+        private void deleteLogs()
+        {
+            List<String> paths = new List<String>();
+            paths.Add(ConfigInfo.getCSharpPath(ConfigInfo.compileLog));
+            paths.Add(ConfigInfo.getCSharpPath(ConfigInfo.failFileLog));
+            paths.Add(ConfigInfo.getCSharpPath(ConfigInfo.compileHistoryPath));
+            foreach (String path in paths)
+            {
+                if(File.Exists(path))
+                    File.Delete(path);
+            }
         }
 
 
@@ -269,14 +389,14 @@ namespace FlashRemoteCompilerServer
 
         private void Server_FormClosing(object sender, FormClosingEventArgs e)
         {
-            ////注意判断关闭事件Reason来源于窗体按钮，否则用菜单退出时无法退出!
-            //if (e.CloseReason == CloseReason.UserClosing)
-            //{
-            //    e.Cancel = true;    //取消"关闭窗口"事件
-            //    this.WindowState = FormWindowState.Minimized;    //使关闭时窗口向右下角缩小的效果
-            //    NotifyIcon.Visible = true;
-            //    this.Hide();
-            //}
+            //注意判断关闭事件Reason来源于窗体按钮，否则用菜单退出时无法退出!
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;    //取消"关闭窗口"事件
+                this.WindowState = FormWindowState.Minimized;    //使关闭时窗口向右下角缩小的效果
+                NotifyIcon.Visible = true;
+                this.Hide();
+            }
         }
 
 

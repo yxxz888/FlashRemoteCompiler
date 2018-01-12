@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -61,6 +62,12 @@
     <Compile Include="SelectFromProject.Designer.cs">
       <DependentUpon>SelectFromProject.cs</DependentUpon>
     </Compile>
+    <Compile Include="SelectFromRecentFile.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectFromRecentFile.Designer.cs">
+      <DependentUpon>SelectFromRecentFile.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="Client.resx">
       <DependentUpon>Client.cs</DependentUpon>
     </EmbeddedResource>
@@ -76,6 +83,9 @@
     <EmbeddedResource Include="SelectFromProject.resx">
       <DependentUpon>SelectFromProject.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="SelectFromRecentFile.resx">
+      <DependentUpon>SelectFromRecentFile.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -87,7 +97,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

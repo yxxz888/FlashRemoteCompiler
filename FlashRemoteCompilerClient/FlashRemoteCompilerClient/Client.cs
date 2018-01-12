@@ -11,6 +11,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Collections.Specialized;
+using System.Xml;
 
 namespace FlashRemoteCompilerClient
 {
@@ -23,16 +25,17 @@ namespace FlashRemoteCompilerClient
         public static String projectPath = Path.Combine(sourcePath, @"project\");
 
         private TcpClient client;
-        private String ip = "127.0.0.1";
-        private int port = 44444;
+        private String ip;
+        private int port;
         private String lastReadMessage = "";
         private Boolean isStartCompile = false;
 
         //下述字符串用作客户端判断任务是否完成的标记，修改的话请同步修改服务端。
-        private String sucCompileMark = "\r\n本次操作成功。";
-        private String failCompileMark = "\r\n本次操作失败。";
+        private String endCompileMark = "\r\n本次操作结束。";
 
         private String separator = "->";
+
+        private List<FileItem> recentlyFileItems = new List<FileItem>();
 
         public FlashRemoteCompilerClient()
         {
@@ -40,8 +43,36 @@ namespace FlashRemoteCompilerClient
         }
 
 
+        private void Form_Closed(object sender, FormClosedEventArgs e)
+        {
+            handleGetLastestTool();
+        }
+
+
+        private void handleGetLastestTool()
+        {
+            String script = "@echo off" + "\r\n";
+            script += "tf get \"%1\" /r";
+            String fileName = "getLastest.bat";
+            StreamWriter sw = new StreamWriter(fileName, false, Encoding.UTF8);
+            sw.Flush();
+            sw.Write(script);
+            sw.Close();
+
+            Process p = new Process();
+            p.StartInfo.FileName = Path.Combine(Application.StartupPath, fileName);
+            String path = Path.Combine(Application.StartupPath, "FlashRemoteCompilerClient.exe");
+            p.StartInfo.Arguments = path;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+            p.Start();
+            p.Close();
+        }
+
+
         private void Form_Load(object sender, EventArgs e)
         {
+            readConfig();
             initClient();
 
             lbFlaList.Items.Clear();
@@ -52,9 +83,12 @@ namespace FlashRemoteCompilerClient
         }
 
 
-        private void Form_Closed(object sender, FormClosedEventArgs e)
+        private void readConfig()
         {
-
+            XmlDocument doc = new XmlDocument();
+            doc.Load("config.xml");
+            ip = doc.SelectSingleNode("config/ip").FirstChild.Value;
+            port = int.Parse(doc.SelectSingleNode("config/port").FirstChild.Value);
         }
 
 
@@ -66,6 +100,22 @@ namespace FlashRemoteCompilerClient
             //ofd.Filter = "fla文件(*.fla)|*.fla";
             if (ofd.ShowDialog() == DialogResult.OK)
                 addFile(ofd.FileNames);
+        }
+
+
+        private void btnAddFromProject_Click(object sender, EventArgs e)
+        {
+            SelectFromProject form = new SelectFromProject();
+            Action<String[]> action = (fileList) => addFile(fileList);
+            form.setCallback(action);
+            form.ShowDialog();
+        }
+
+
+        private void btnAddFromRecent_Click(object sender, EventArgs e)
+        {
+            SelectFromRecentFile form = new SelectFromRecentFile(recentlyFileItems, (fileList) => addFile(fileList));
+            form.ShowDialog();
         }
 
 
@@ -113,15 +163,6 @@ namespace FlashRemoteCompilerClient
         }
 
 
-        private void btnAddFromProject_Click(object sender, EventArgs e)
-        {
-            SelectFromProject form = new SelectFromProject();
-            Action<String[]> action = (fileList) => addFile(fileList);
-            form.setCallback(action);
-            form.ShowDialog();
-        }
-
-
         private void lbFlaList_SelectedIndexChanged(object sender, EventArgs e)
         {
             FileItem item = lbFlaList.SelectedItem as FileItem;
@@ -141,7 +182,23 @@ namespace FlashRemoteCompilerClient
 
                 FileItem item = new FileItem(fileNames[i]);
                 lbFlaList.Items.Add(item);
+
+                addFileToRecentList(item);
             }
+        }
+
+
+        private void addFileToRecentList(FileItem file)
+        {
+            for(int i = recentlyFileItems.Count - 1; i >= 0; i--)
+            {
+                if(recentlyFileItems[i].realPath == file.realPath)
+                {
+                    recentlyFileItems.RemoveAt(i);
+                    break;
+                }
+            }
+            recentlyFileItems.Insert(0, file);
         }
 
 
@@ -180,7 +237,7 @@ namespace FlashRemoteCompilerClient
                     MessageBox.Show("发现文件“" + item.fileName + "”不是全小写，停止编译。");
                     return;
                 }
-                flaListStr += item.realPath;
+                flaListStr += item.relativePath;
                 if (i < lbFlaList.Items.Count - 1)
                     flaListStr += ",";
             }
@@ -224,6 +281,7 @@ namespace FlashRemoteCompilerClient
                 {
                     showNextLineLog("连接失败，请移步编译机查看服务端是否开启！");
                     client = null;
+                    isStartCompile = false;
                 }
             }
         }
@@ -250,7 +308,6 @@ namespace FlashRemoteCompilerClient
 
         private void handleSend(String message)
         {
-            Console.WriteLine("message:" + message);
             byte[] bytes = Encoding.Default.GetBytes(message);
             try
             {
@@ -262,13 +319,13 @@ namespace FlashRemoteCompilerClient
                 Console.WriteLine(e.StackTrace);
                 client.Close();
                 client = null;
+                isStartCompile = false;
             }
         }
 
 
         private void onWriteDataBack(IAsyncResult ar)
         {
-            Console.WriteLine("onWriteDataBack");
             try
             {
                 client.GetStream().EndWrite(ar);
@@ -279,6 +336,7 @@ namespace FlashRemoteCompilerClient
                 Console.WriteLine(e.StackTrace);
                 client.Close();
                 client = null;
+                isStartCompile = false;
             }
         }
 
@@ -300,10 +358,8 @@ namespace FlashRemoteCompilerClient
                 if (client.GetStream().DataAvailable == false)//读完了
                 {
                     showLog(lastReadMessage);
-                    if (lastReadMessage.IndexOf(sucCompileMark) > -1)//成功
-                        handleCompileSuc();
-                    else if(lastReadMessage.IndexOf(failCompileMark) > -1)//失败
-                        handleCompileFail();
+                    if (lastReadMessage.IndexOf(endCompileMark) > -1)//成功
+                        handleCompileFinished();
                     lastReadMessage = "";
                 }
                 handleRead();
@@ -314,19 +370,14 @@ namespace FlashRemoteCompilerClient
                 Console.WriteLine(e.StackTrace);
                 client.Close();
                 client = null;
+                isStartCompile = false;
             }
         }
 
 
-        private void handleCompileSuc()
+        private void handleCompileFinished()
         {
             lbFlaList.Items.Clear();
-            handleFinishCompile();
-        }
-
-
-        private void handleCompileFail()
-        {
             handleFinishCompile();
         }
 
@@ -334,7 +385,7 @@ namespace FlashRemoteCompilerClient
         private void handleFinishCompile()
         {
             isStartCompile = false;
-            showNextLineLog("===========================================");
+            showNextLineLog("=========================================== " + DateTime.Now.ToString("HH:mm:ss"));
         }
 
 

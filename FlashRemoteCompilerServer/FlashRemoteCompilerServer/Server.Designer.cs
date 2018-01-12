@@ -122,6 +122,7 @@
             this.Controls.Add(this.lbFileList);
             this.Controls.Add(this.lbNameList);
             this.Controls.Add(this.cbDateList);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Server";
             this.Text = "FlashRemoteCompilerServer";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Server_FormClosing);

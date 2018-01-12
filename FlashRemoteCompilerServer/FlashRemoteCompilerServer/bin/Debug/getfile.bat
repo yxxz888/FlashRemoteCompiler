@@ -2,7 +2,7 @@
 
 call "init.bat"
 
-tf get /all
+tf get "%1" /r
 
 if %errorlevel% GTR 0 goto err2
 
