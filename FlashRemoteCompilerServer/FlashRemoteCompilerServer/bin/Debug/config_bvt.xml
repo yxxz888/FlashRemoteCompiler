@@ -18,7 +18,7 @@
     <compileHistoryPath>compileHistory.txt</compileHistoryPath><!--累计编译文件日志名-->
     <copy><!--要拷贝的发布路径-->
       <path>C:\Inetpub\ftproot\site\play</path>
-      <path type="ftp" user="root" pw="bvtadmin">ftp://10.18.1.4/site/play</path>
+      <path type="ftp" user="root" pw="000000">ftp://10.17.2.17/site/play</path>
     </copy>
   </client>
 </config>

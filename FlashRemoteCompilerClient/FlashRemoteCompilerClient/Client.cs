@@ -52,7 +52,7 @@ namespace FlashRemoteCompilerClient
         private void handleGetLastestTool()
         {
             String script = "@echo off" + "\r\n";
-            script += "tf get \"%1\" /r";
+            script += "tf get \"%1\" /r" + "\r\n";
             String fileName = "getLastest.bat";
             StreamWriter sw = new StreamWriter(fileName, false, Encoding.UTF8);
             sw.Flush();
